@@ -5,3 +5,5 @@ sentence-transformers
 transformers
 langchain-gigachat
 requests
+pytest
+python-dotenv
