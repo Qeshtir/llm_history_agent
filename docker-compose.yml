@@ -10,12 +10,30 @@ services:
       - .env
     volumes:
       - .:/app
+      - chroma_data:/app/storage/chroma_db
     command: python app/app.py
     restart: always
     environment:
       PYTHONPATH: /app/app
+      TELEGRAM_API_TOKEN: ${TELEGRAM_API_TOKEN}
+      GIGACHAT_API_KEY: ${GIGACHAT_API_KEY}
+      GIGACHAT_SCOPE: ${GIGACHAT_SCOPE}
+      CHROMA_ENDPOINT: http://chroma:8001
     networks:
       - app_network
+
+  chroma:
+    image: chromadb/chroma:latest
+    container_name: chromadb-history
+    ports:
+      - "8001:8001"
+    networks:
+      - app_network
+    volumes:
+      - chroma_data:/var/lib/chroma
+
+volumes:
+  chroma_data:
 
 networks:
   app_network:
