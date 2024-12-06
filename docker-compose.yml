@@ -1,40 +1,21 @@
 version: '3.8'
 
 services:
-  app:
-    container_name: history_agent
-    build:
-      context: .
-    image: event-planner-api:latest
+  bot:
+    build: .
+    volumes:
+      - ./app:/app
+      - ./chroma_db:/app/chroma_db
     env_file:
       - .env
-    volumes:
-      - .:/app
-      - chroma_data:/app/storage/chroma_db
-    command: python app/app.py
     restart: always
-    environment:
-      PYTHONPATH: /app/app
-      TELEGRAM_API_TOKEN: ${TELEGRAM_API_TOKEN}
-      GIGACHAT_API_KEY: ${GIGACHAT_API_KEY}
-      GIGACHAT_SCOPE: ${GIGACHAT_SCOPE}
-      CHROMA_ENDPOINT: http://chroma:8001
-    networks:
-      - app_network
 
   chroma:
-    image: chromadb/chroma:latest
-    container_name: chromadb-history
-    ports:
-      - "8001:8001"
-    networks:
-      - app_network
+    image: chromadb/chroma
     volumes:
-      - chroma_data:/var/lib/chroma
-
-volumes:
-  chroma_data:
-
-networks:
-  app_network:
-    driver: bridge
+      - ./chroma_db:/chroma/chroma_db
+    environment:
+      - CHROMA_DB_IMPL=duckdb+parquet
+      - PERSIST_DIRECTORY=/chroma/chroma_db
+    ports:
+      - "8000:8000"
