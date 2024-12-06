@@ -9,13 +9,3 @@ services:
     env_file:
       - .env
     restart: always
-
-  chroma:
-    image: chromadb/chroma
-    volumes:
-      - ./chroma_db:/chroma/chroma_db
-    environment:
-      - CHROMA_DB_IMPL=duckdb+parquet
-      - PERSIST_DIRECTORY=/chroma/chroma_db
-    ports:
-      - "8000:8000"

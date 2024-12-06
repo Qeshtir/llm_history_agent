@@ -1,9 +1,8 @@
 aiogram==3.12.0
 langchain
 chromadb
-sentence-transformers
-transformers
 langchain-gigachat
 requests
 pytest
 python-dotenv
+pydantic-settings
