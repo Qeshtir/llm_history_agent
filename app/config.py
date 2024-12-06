@@ -19,6 +19,10 @@ class Settings(BaseSettings):
     GIGACHAT_API_KEY: str
     CHROMA_PERSIST_DIRECTORY: str = "./chroma_db"
     EMBEDDING_SERVICE: str = "gigachat"
-
+    
+    # Настройки для обработки текста
+    CHUNK_SIZE: int = 1000
+    CHUNK_OVERLAP: int = 200
+    
     class Config:
         env_file = ".env"

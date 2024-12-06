@@ -132,3 +132,32 @@ class ChromaService:
             ids=[document_id],
             metadatas=[metadata]
         )
+
+    def get_unique_topics(self, collection_name: str) -> List[str]:
+        """Получение списка уникальных топиков в коллекции"""
+        collection = self.create_or_get_collection(collection_name)
+        result = collection.get()
+        
+        if not result or not result['metadatas']:
+            return []
+        
+        return list(set(meta['topic'] for meta in result['metadatas'] if 'topic' in meta))
+
+    def get_documents_by_topic(self, collection_name: str, topic: str) -> Dict:
+        """Получение всех документов по конкретному топику"""
+        collection = self.create_or_get_collection(collection_name)
+        return collection.query(
+            query_texts=[""],
+            where={"topic": topic},
+            n_results=100  # можно параметризовать если нужно
+        )
+
+    def document_exists(self, collection_name: str, file_path: str) -> bool:
+        """Проверка существования документа в коллекции"""
+        collection = self.create_or_get_collection(collection_name)
+        result = collection.query(
+            query_texts=[""],
+            where={"source": str(file_path)},
+            n_results=1
+        )
+        return len(result['ids']) > 0
