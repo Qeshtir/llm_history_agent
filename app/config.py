@@ -19,7 +19,8 @@ class Settings(BaseSettings):
 
     GIGACHAT_API_KEY: str
     EMBEDDING_SERVICE: str = "gigachat"
-    
+    LLM_GIGACHAT_MODEL: str = "GigaChat-Pro"
+
     CHROMA_PERSIST_DIRECTORY: str = "./chroma_db"
     # Настройки для обработки текста
     CHUNK_SIZE: int = 1000
