@@ -12,6 +12,7 @@ def load_documents(docs_dir: str, collection_name: str = "history_lectures"):
     
     docs_path = Path(docs_dir)
     for file_path in docs_path.glob("*.txt"):
+        logger.info(f"Обработка файла: {file_path}")
         try:
             # Проверяем, не загружен ли уже документ
             if chroma_service.document_exists(collection_name, str(file_path)):
@@ -20,6 +21,7 @@ def load_documents(docs_dir: str, collection_name: str = "history_lectures"):
                 
             # Обрабатываем и загружаем документ
             chunks, metadata_list = processor.process_file(file_path)
+            logger.info(f"Загружаем {len(chunks)} чанков в коллекцию {collection_name}")
             chroma_service.add_documents(
                 collection_name=collection_name,
                 texts=chunks,
