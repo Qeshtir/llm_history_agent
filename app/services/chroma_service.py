@@ -3,6 +3,9 @@ import chromadb
 from chromadb.config import Settings
 from config import settings
 from .embeddings import get_embeddings_service
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ChromaService:
     def __init__(self, embedding_service: str = "gigachat"):
@@ -21,25 +24,23 @@ class ChromaService:
     def _get_embeddings(self, texts: List[str]) -> List[List[float]]:
         """
         Внутренний метод для получения эмбеддингов текстов.
-        Инкапсулирует логику работы с различными embedding-моделями и может быть расширен
-        для добавления кэширования или батчинга.
-
-        PS (прочтете - удалим):
-        Подчеркивание _ в начале имени метода _get_embeddings - это соглашение в Python, 
-        которое указывает на то, что метод предназначен 
-        для внутреннего использования в классе (условно "приватный" метод).
         """
-        return self.embeddings.get_embeddings(texts)
+        return self.embeddings(texts)  # Используем __call__ через прямой вызов объекта
 
     def create_or_get_collection(self, collection_name: str):
         """Создает новую коллекцию или возвращает существующую"""
+        logger.info(f"Попытка получить коллекцию: {collection_name}")
         try:
-            collection = self.client.get_collection(name=collection_name)
-        except ValueError:
+            collection = self.client.get_collection(name=collection_name, embedding_function=self.embeddings)
+            logger.info(f"Коллекция {collection_name} найдена.")
+        except Exception as e:
+            logger.error(f"Ошибка при получении коллекции: {str(e)}")
             collection = self.client.create_collection(
                 name=collection_name,
-                metadata={"description": "Historical documents collection"}
+                metadata={"description": "Historical documents collection"},
+                embedding_function=self.embeddings
             )
+            logger.info(f"Создана новая коллекция: {collection_name}")
         return collection
 
     def add_documents(
@@ -98,12 +99,21 @@ class ChromaService:
         collection = self.create_or_get_collection(collection_name)
         
         where = metadata_filter if metadata_filter else None
-        
+
+        # Получаем эмбеддинг запроса
+        query_embedding = self._get_embeddings([query_text])[0]
+
         results = collection.query(
-            query_texts=[query_text],
+            query_embeddings=[query_embedding],
             n_results=n_results,
             where=where
         )
+        
+        # results = collection.query(
+        #     query_texts=[query_text],
+        #     n_results=n_results,
+        #     where=where
+        # )
         
         return results
 
