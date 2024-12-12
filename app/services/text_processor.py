@@ -43,13 +43,27 @@ class TextProcessor:
 
     def read_file(self, file_path: Path) -> str:
         """Чтение файла с определением кодировки"""
-        encodings = ['utf-8', 'windows-1251']
+        encodings = ['utf-8', 'windows-1251', 'cp1251', 'latin1']
+
+        if not file_path.is_file():
+            logger.error(f"Файл не найден: {file_path}")
+            raise FileNotFoundError(f"File not found: {file_path}")
         
         for encoding in encodings:
             try:
                 with open(file_path, 'r', encoding=encoding) as file:
-                    return file.read()
+                    content = file.read()
+                    # if content is None:
+                    #     logger.error(f"Не удалось прочитать файл {file_path} ни в одной кодировке")
+                    #     continue
+                    # if not content.strip():
+                    #     logger.warning(f"Файл {file_path} пустой!")
+                    #     continue
+                    return content
             except UnicodeDecodeError:
+                continue
+            except Exception as e:
+                logger.error(f"Ошибка при чтении файла {file_path}: {str(e)}")
                 continue
         
         raise ValueError(f"Не удалось прочитать файл {file_path}")
@@ -70,7 +84,7 @@ class TextProcessor:
         """
         chunks = []
         start = 0
-        
+           
         while start < len(text):
             # Определяем конец чанка
             end = start + self.chunk_size
@@ -79,32 +93,42 @@ class TextProcessor:
                 chunks.append(text[start:])
                 break
                 
-            # Ищем конец предложения в пределах chunk_size
+            # Ищем последнюю точку в пределах chunk_size
             split_position = text.rfind('.', start, end)
             
-            if split_position == -1 or split_position <= start:
-                split_position = end
+            if split_position == -1 or (split_position - self.chunk_overlap + 1) == start:  # Если точки не найдена или она попадает на начало перекрытия, ищем последний пробел
+                split_position = text.rfind(' ', start, end)
+                if split_position == -1 or split_position <= start:
+                    # Если пробела нет, устанавливаем split_position в end
+                    split_position = end
+                else:
+                    split_position += 1  # Увеличиваем на 1, чтобы включить пробел в чанк
             else:
-                split_position += 1
+                split_position += 1  # Увеличиваем на 1, чтобы включить точку в чанк
                 
-            chunks.append(text[start:split_position])
+            # Проверка на случай, если split_position не изменился
+            if split_position <= start:
+                logger.error(f"Ошибка: split_position не изменился. start: {start}, end: {end}, split_position: {split_position}")
+                break  # Выход из цикла, чтобы избежать зацикливания
+            
+            chunks.append(text[start:split_position].strip())  # Убираем лишние пробелы
             
             # Следующий чанк начинается с учетом overlap
             start = split_position - self.chunk_overlap
             
+        logger.info(f"Всего создано чанков: {len(chunks)}")
         return chunks
 
     def extract_metadata(self, text: str, file_path: Optional[Path] = None) -> Dict:
         """
         Извлечение метаданных из текста и пути к файлу.
         На данный момент извлекаем только:
-        - Имя файла как source
+        - Имя файла как path
         - Тему (название файла без номера) как topic
         """
         metadata = {
-            "source": str(file_path) if file_path else "unknown",
-            "length": len(text),
-            "chunks": len(self.split_into_chunks(text))
+            "path": str(file_path) if file_path else "unknown",
+            "length": len(text)
         }
         
         if not file_path:
@@ -124,8 +148,14 @@ class TextProcessor:
             "topic": topic,
             "filename": filename
         })
-            
-        return metadata
+        
+        # Убедитесь, что возвращаем только простые типы
+        return {
+            "path": metadata["path"],
+            "topic": metadata["topic"],
+            "filename": metadata["filename"],
+            "length": metadata["length"]
+        }
 
     def process_file(self, file_path: Path) -> Tuple[List[str], List[Dict]]:
         """
@@ -150,17 +180,23 @@ class TextProcessor:
             logger.info(f"Статистика обработки: {stats}")
             
             base_metadata = self.extract_metadata(cleaned_text, file_path)
-            base_metadata.update({"text_stats": stats})
+            # base_metadata.update({"text_stats": stats})
             
             metadata_list = []
             for i, chunk in enumerate(chunks):
-                chunk_metadata = base_metadata.copy()
-                chunk_metadata.update({
-                    "chunk_id": i,
-                    "chunk_total": len(chunks),
-                    "chunk_text_length": len(chunk)
-                })
+                chunk_metadata = {
+                    'path': f"{base_metadata['path']}",
+                    'topic': f"{base_metadata['topic']}",
+                    'filename': f"{base_metadata['filename']}",
+                    'chunk_id': f"{i}",
+                    'chunk_total': f"{len(chunks)}",
+                    'chunk_text_length': f"{len(chunk)}"
+                }
                 metadata_list.append(chunk_metadata)
+            
+            # # Создаем строку со статистикой
+            # stats_string = f"Total length: {len(cleaned_text)}, Chunks count: {len(chunks)}, Avg chunk size: {len(cleaned_text) / len(chunks) if chunks else 0:.2f}"
+            # logger.info(f"Статистика обработки: {stats_string}")
             
             logger.info(f"Обработка файла {file_path} завершена успешно")
             return chunks, metadata_list

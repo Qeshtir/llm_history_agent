@@ -9,13 +9,11 @@ logger = logging.getLogger(__name__)
 
 class GigaChatEmbeddingsService(EmbeddingFunction):
     def __init__(self):
-        logger.info("Initializing GigaChat service")
         try:
             self.embeddings = GigaChatEmbeddings(
                 credentials=settings.GIGACHAT_API_KEY,
                 verify_ssl_certs=False
             )
-            logger.info("GigaChat service initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize GigaChat service: {str(e)}")
             raise
@@ -27,7 +25,6 @@ class GigaChatEmbeddingsService(EmbeddingFunction):
         """
         try:
             embeddings = [self.embeddings.embed_query(text) for text in input]
-            logger.info(f"Got embeddings with dimension {len(embeddings[0])}")
             return embeddings
         except Exception as e:
             logger.error(f"Error getting embeddings: {str(e)}")

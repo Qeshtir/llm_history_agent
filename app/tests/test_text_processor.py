@@ -47,7 +47,7 @@ def test_extract_metadata(processor):
     file_path = Path("test_file.txt")
     metadata = processor.extract_metadata("Тестовый текст", file_path)
     
-    assert "source" in metadata
+    assert "path" in metadata
     assert "length" in metadata
     assert "chunks" in metadata
     
