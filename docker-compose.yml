@@ -5,6 +5,7 @@ services:
     build: .
     volumes:
       - ./app:/app
+      - ./scratches:/app/data/scratches
       - ./chroma_db:/app/chroma_db
     env_file:
       - .env
