@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 import logging
 from config import settings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 logger = logging.getLogger(__name__)
 
@@ -79,44 +80,8 @@ class TextProcessor:
         return text.strip()
 
     def split_into_chunks(self, text: str) -> List[str]:
-        """
-        Разбиение текста на чанки с перекрытием
-        """
-        chunks = []
-        start = 0
-           
-        while start < len(text):
-            # Определяем конец чанка
-            end = start + self.chunk_size
-            
-            if end >= len(text):
-                chunks.append(text[start:])
-                break
-                
-            # Ищем последнюю точку в пределах chunk_size
-            split_position = text.rfind('.', start, end)
-            
-            if split_position == -1 or (split_position - self.chunk_overlap + 1) == start:  # Если точки не найдена или она попадает на начало перекрытия, ищем последний пробел
-                split_position = text.rfind(' ', start, end)
-                if split_position == -1 or split_position <= start:
-                    # Если пробела нет, устанавливаем split_position в end
-                    split_position = end
-                else:
-                    split_position += 1  # Увеличиваем на 1, чтобы включить пробел в чанк
-            else:
-                split_position += 1  # Увеличиваем на 1, чтобы включить точку в чанк
-                
-            # Проверка на случай, если split_position не изменился
-            if split_position <= start:
-                logger.error(f"Ошибка: split_position не изменился. start: {start}, end: {end}, split_position: {split_position}")
-                break  # Выход из цикла, чтобы избежать зацикливания
-            
-            chunks.append(text[start:split_position].strip())  # Убираем лишние пробелы
-            
-            # Следующий чанк начинается с учетом overlap
-            start = split_position - self.chunk_overlap
-            
-        logger.info(f"Всего создано чанков: {len(chunks)}")
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=self.chunk_size,  chunk_overlap=self.chunk_overlap, strip_whitespace=True)
+        chunks = text_splitter.split_text(text)
         return chunks
 
     def extract_metadata(self, text: str, file_path: Optional[Path] = None) -> Dict:
