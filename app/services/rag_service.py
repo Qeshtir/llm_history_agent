@@ -6,6 +6,10 @@ from typing import List, Dict
 from pathlib import Path
 from services.text_processor import TextProcessor
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
+collection_name = os.getenv("CHROMA_COLLECTION_NAME")
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +18,7 @@ class RAGService:
         self.chroma_service = ChromaService()
         self.giga_chat_service = GigaChatService()
 
-    def load_documents_from_directory(self, docs_dir: str = "/app/data/scratches/cleaned_docs", json_file: str = "urls.json", collection_name: str = "russo_japanese_war"):
+    def load_documents_from_directory(self, docs_dir: str = "/app/data/scratches/cleaned_docs", json_file: str = "urls.json", collection_name: str = collection_name):
         """
         Загружает документы из указанной директории в ChromaDB.
         

@@ -3,10 +3,16 @@ from pathlib import Path
 from services.text_processor import TextProcessor
 from services.chroma_service import ChromaService
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+collection_name = os.getenv("CHROMA_COLLECTION_NAME")
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def load_documents(docs_dir: str, collection_name: str = "history_lectures"):
+def load_documents(docs_dir: str, collection_name: str = collection_name):
     processor = TextProcessor()
     chroma_service = ChromaService()
     
@@ -14,11 +20,6 @@ def load_documents(docs_dir: str, collection_name: str = "history_lectures"):
     for file_path in docs_path.glob("*.txt"):
         logger.info(f"Обработка файла: {file_path}")
         try:
-            # # Проверяем, не загружен ли уже документ
-            # if chroma_service.document_exists(collection_name, str(file_path)):
-            #     logger.info(f"Документ {file_path} уже существует в коллекции")
-            #     continue
-                
             # Обрабатываем и загружаем документ
             chunks, metadata_list = processor.process_file(file_path)
             logger.info(f"Загружаем {len(chunks)} чанков в коллекцию {collection_name}")
@@ -33,4 +34,4 @@ def load_documents(docs_dir: str, collection_name: str = "history_lectures"):
             logger.error(f"Ошибка при загрузке {file_path}: {str(e)}")
 
 if __name__ == "__main__":
-    load_documents("scratches/cleaned_docs") 
+    load_documents("C:\\Users\\realn\\PycharmProjects\\llm_history_agent\\scratches\\cleaned_docs")

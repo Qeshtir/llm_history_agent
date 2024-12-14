@@ -4,10 +4,12 @@ from aiogram.fsm.context import FSMContext
 
 from utils.states import ProcessLLMStates
 from services.rag_service import RAGService
+import os
+from dotenv import load_dotenv
 
 rag_service = RAGService()
-
-collection_name = "russo_japanese_war"
+load_dotenv()
+collection_name = os.getenv("CHROMA_COLLECTION_NAME")
 
 router = Router()
 
