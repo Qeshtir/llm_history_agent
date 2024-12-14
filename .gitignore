@@ -1,6 +1,7 @@
 
 /.venv/
 .env
+.idea/
 *.json
 
 __pycache__/
@@ -11,3 +12,4 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+/chroma_db/

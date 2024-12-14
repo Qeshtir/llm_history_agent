@@ -1,22 +1,12 @@
 version: '3.8'
 
 services:
-  app:
-    container_name: history_agent
-    build:
-      context: .
-    image: event-planner-api:latest
+  bot:
+    build: .
+    volumes:
+      - ./app:/app
+      - ./scratches:/app/data/scratches
+      - ./chroma_db:/app/chroma_db
     env_file:
       - .env
-    volumes:
-      - .:/app
-    command: python app/app.py
     restart: always
-    environment:
-      PYTHONPATH: /app/app
-    networks:
-      - app_network
-
-networks:
-  app_network:
-    driver: bridge
