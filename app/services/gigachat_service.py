@@ -27,6 +27,7 @@ SYSTEM_PROMPT = """Работай как исторический ассисте
 5. Если источников несколько, указывай их все, перечисляя их в порядке значимости или полезности. 
 """
 
+
 class GigaChatService:
     def __init__(self):
         logger.info("Initializing GigaChat service")
@@ -34,7 +35,7 @@ class GigaChatService:
             self.chat = GigaChat(
                 credentials=settings.GIGACHAT_API_KEY,
                 verify_ssl_certs=False,
-                model=settings.LLM_GIGACHAT_MODEL
+                model=settings.LLM_GIGACHAT_MODEL,
             )
             logger.info("GigaChat service initialized successfully")
         except Exception as e:
@@ -48,15 +49,17 @@ class GigaChatService:
         try:
             messages = self._create_messages(query, context)
             response = self.chat.invoke(messages)
-            
+
             logger.info(f"Generated response for query: {query}")
             return response.content
-            
+
         except Exception as e:
             logger.error(f"Error generating response: {str(e)}")
             raise
 
-    def _create_messages(self, query: str, context: List[str]) -> List[SystemMessage | AIMessage | HumanMessage]:
+    def _create_messages(
+        self, query: str, context: List[str]
+    ) -> List[SystemMessage | AIMessage | HumanMessage]:
         """
         Создает список сообщений для модели используя langchain схему:
         - SystemMessage: инструкции для модели
@@ -64,16 +67,15 @@ class GigaChatService:
         - HumanMessage: вопрос пользователя
         """
         messages = [SystemMessage(content=SYSTEM_PROMPT)]
-        
+
         # Объединяем контекст в одну строку
         context_text = self.generate_context(context)
         messages.append(AIMessage(content=context_text))
-        
+
         # Добавляем вопрос пользователя
         messages.append(HumanMessage(content=query))
-        
-        return messages 
-    
+
+        return messages
+
     def generate_context(self, texts: List[str]) -> str:
-        
         return "\n".join(texts)
