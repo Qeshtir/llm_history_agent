@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    volumes:
+      - ./app:/app
+      - ./scratches:/app/data/scratches
+      - ./chroma_db:/app/chroma_db
+    env_file:
+      - .env
+    restart: always
