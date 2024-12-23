@@ -31,6 +31,11 @@ class Settings(BaseSettings):
 
     COLLECTION_NAME: str = os.getenv("CHROMA_COLLECTION_NAME")
 
+    LANGSMITH_API_KEY: str = os.getenv("LANGSMITH_API_KEY")
+
+    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
+
+    MISTRAL_API_KEY: str =os.getenv("MISTRAL_API_KEY")
     class Config:
         env_file = ".env"
 

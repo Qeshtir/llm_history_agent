@@ -7,3 +7,5 @@ python-dotenv
 pydantic-settings
 pytest==7.4.3
 pytest-asyncio==0.21.1
+langsmith == 0.2.4
+langchain-mistralai==0.2.4
